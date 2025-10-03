@@ -1,23 +1,16 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Generator, Iterable
-
+import os.path
+import sqlite3
 from contextlib import closing
-
-try:
-    import sqlean as sqlite3
-    from sqlean import OperationalError
-
-    sqlite3.extensions.enable_all()
-except ImportError:
-    import sqlite3
-    from sqlite3 import OperationalError
-from litecli.packages.special.utils import check_if_sqlitedotcommand
+from sqlite3 import OperationalError
+from typing import Any, Generator, Iterable
+from urllib.parse import urlparse
 
 import sqlparse
-import os.path
-from urllib.parse import urlparse
+
+from litecli.packages.special.utils import check_if_sqlitedotcommand
 
 from .packages import special
 
@@ -89,6 +82,8 @@ class SQLExecute(object):
                 raise Exception("Path does not exist: {}".format(db_dir_name))
 
         conn = sqlite3.connect(database=db_name, isolation_level=None, uri=uri)
+        conn.enable_load_extension(True)
+        conn.load_extension("/opt/homebrew/lib/mod_spatialite.dylib")
         conn.text_factory = lambda x: x.decode("utf-8", "backslashreplace")
         if self.conn:
             self.conn.close()
